@@ -1,8 +1,7 @@
-// const express = require('express')
-// const path = require('path')
 import express from 'express'
 import path, { dirname } from 'path'
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'url'
+import exphbs from 'express-handlebars'
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -18,41 +17,40 @@ const pathsLogin = [
   'user/panel',
 ]
 
-// const paths = [
-//   { pathToFile: 'index', url: '/' },
-//   { pathToFile: 'about', url: '/about' },
-//   { pathToFile: 'contact', url: '/contact' },
-//   { pathToFile: 'info', url: '/info' },
-//   { pathToFile: 'history', url: '/history' },
-// ]
+// files *.hbs should manage by exphbs.engine
+app.engine('hbs', exphbs.engine({
+  defaultLayout: 'main',
+  extname: '.hbs'
+}));
+
+//set views page as *.hbs
+app.set('view engine', 'hbs');
 
 app.use(express.static(path.join(__dirname, '/public')))
-app.use((req, res, next) => {
-  res.show = name => {
-    res.sendFile(path.join(__dirname, name));
-  }
-  next()
-})
-
-pathsLogin.map(path => {
-  app.use(`/${path}`, (req, res) => {
-    res.show(`views/user.html`)
-  })
-})
 
 paths.map(name => {
   const pathUrl = name.includes('index') ? '/' : '/' + name;
   app.get(pathUrl, (req, res) => {
-    res.show(`views/${name}.html`)
+    // res.render(`views/${name}`)
+    res.render(name)
   });
+})
+pathsLogin.map(path => {
+  app.use(`/${path}`, (req, res) => {
+    res.render('user', { layout: 'dark' })
+  })
+})
+
+app.get('/hello/:name', (req, res) => {
+  res.render('hello', { name: req.params.name });
 })
 
 app.get('/home', (req, res) => {
-  res.show('views/index.html')
+  res.render('index')
 })
 
 app.use((req, res) => {
-  res.show('views/notFound.html');
+  res.render('notFound')
 })
 
 app.listen(8000, () => {
